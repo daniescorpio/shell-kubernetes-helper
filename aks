@@ -2,8 +2,8 @@
 
 # Developer: Daniel Garcia Alonso
 # Contact: Garcia Alonso Daniel <d.garciaalonso@servexternos.pagonxt.com>
-# Version 0.5.0
-# Version date: 2023-11-13
+# Version 0.6.0
+# Version date: 2023-11-15
 
 
 # Configure temporal path to save logs
@@ -315,9 +315,39 @@ pod_logs() {
 		if [ -n "$filterBy" ]; then
 			echo
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE | grep -i "$filterBy"
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE | grep -i "$filterBy"
+						;;
+					*) break ;;
+				esac
+			done
+
 		else
 			echo
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE
+						;;
+					*) break ;;
+				esac
+			done
+
 		fi
 	else
 		echo -e -n "${Cyan}Enter text to filter by or left empty to show full log: ${Color_Off}"
@@ -325,9 +355,39 @@ pod_logs() {
 		if [ -n "$filterBy" ]; then
 			echo
 			kubectl logs $podName --namespace $NAMESPACE | grep -i "$filterBy"
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs $podName --namespace $NAMESPACE | grep -i "$filterBy"
+						;;
+					*) break ;;
+				esac
+			done
+
 		else
 			echo
 			kubectl logs $podName --namespace $NAMESPACE
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs $podName --namespace $NAMESPACE
+						;;
+					*) break ;;
+				esac
+			done
+
 		fi
 
 		if [[ ! " ${recent_pods[@]} " =~ " $podName " ]]; then
@@ -349,6 +409,7 @@ pod_logs_tmp_file() {
 	echo
 	echo
 
+	# Recent pods list
 	if [[ ${#recent_pods[@]} -gt 0 ]]; then
 		echo -e "${Blue}  ---------------- ${IBlue}RECENT PODS VIEWED ${Blue}-----------------  ${Color_Off}"
 		echo
@@ -370,28 +431,81 @@ pod_logs_tmp_file() {
 
 	echo
 	
+	# Select a pod from recent pods list
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
 		kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$TMP_LOG_FILE"
 		echo
 		echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$TMP_LOG_FILE'"
+
+		# Open file in browser
+		echo 
+		echo -e -n "Do you want to open file in browser? (y/n): "
+		read -n 1 openBrowser
+		case $openBrowser in
+			[Yy]*) 
+				open -a "$DEFAULT_BROWSER" "$TMP_LOG_FILE" 
+				echo
+				;;
+			*) echo ;;
+		esac
+
+		# Refresh
+		while true; do
+			echo
+			echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+			read -n 1 refreshLogs
+			case $refreshLogs in
+				[Rr]*) 
+					echo
+					kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$TMP_LOG_FILE"
+					echo
+					echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$TMP_LOG_FILE'"
+					;;
+				*) break ;;
+			esac
+		done
+
+	# Select a pod by typing pod name
 	else
 		kubectl logs $podName --namespace $NAMESPACE > "$TMP_LOG_FILE"
 		echo
 		echo "Logs of pod $podName saved in file '$TMP_LOG_FILE'"
 
+		# Open file in browser
+		echo 
+		echo -e -n "Do you want to open file in browser? (y/n): "
+		read -n 1 openBrowser
+		case $openBrowser in
+			[Yy]*) 
+				open -a "$DEFAULT_BROWSER" "$TMP_LOG_FILE"
+				echo
+				;;
+			*) echo ;;
+		esac
+
+		# Refresh
+		while true; do
+			echo
+			echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+			read -n 1 refreshLogs
+			case $refreshLogs in
+				[Rr]*) 
+					echo
+					kubectl logs $podName --namespace $NAMESPACE > "$TMP_LOG_FILE"
+					echo
+					echo "Logs of pod $podName refreshed in file '$TMP_LOG_FILE'"
+
+					echo 
+					;;
+				*) break ;;
+			esac
+		done
+
+		# Save pod in recent pods list
 		if [[ ! " ${recent_pods[@]} " =~ " $podName " ]]; then
 			recent_pods=("$podName" "${recent_pods[@]}")
 			recent_pods=("${recent_pods[@]:0:5}")
 		fi
-	fi
-
-	echo 
-	echo -e -n "Do you want to open file in browser? (y/n): "
-	read openBrowser
-	if [[ "$openBrowser" == "y" ]]; then
-		open -a "$DEFAULT_BROWSER" "$TMP_LOG_FILE"
-	else
-		echo
 	fi
 
 }
@@ -408,6 +522,7 @@ pod_logs_file_path() {
 	echo
 	timestamp=$(date +"%Y%m%d-%H%M%S")
 	
+	# Recent pods list
 	if [[ ${#recent_pods[@]} -gt 0 ]]; then
 		echo -e "${Blue}  ---------------- ${IBlue}RECENT PODS VIEWED ${Blue}-----------------  ${Color_Off}"
 		echo
@@ -429,9 +544,12 @@ pod_logs_file_path() {
 
 	echo
 
+	# Select a pod from recent pods list
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
 		echo -e -n "${Cyan}Enter file path to save logs ${Color_Off}($(pwd)): "
 		read filePath
+
+		# Save logs file in custom path
 		if [ -n "$filePath" ]; then
 			if [[ -d "$(pwd)/$filePath" ]]; then
 				echo "$(pwd)/$filePath directory already exists"
@@ -442,26 +560,87 @@ pod_logs_file_path() {
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
 			echo
 			echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
+
+			# Open file in browser
+			echo 
+			echo -e -n "Do you want to open file in browser? (y/n): "
+			read -n 1 openBrowser
+			case $openBrowser in
+				[Yy]*) 
+					if [ -n "$filePath" ]; then
+						open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					else
+						open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					fi
+					;;
+				*) echo ;;
+			esac
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+						echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
+						;;
+					*) break ;;
+				esac
+			done
+
+		# Save logs file in default path
 		else
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 			echo
 			echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
+
+			# Open file in browser
+			echo 
+			echo -e -n "Do you want to open file in browser? (y/n): "
+			read -n 1 openBrowser
+			case $openBrowser in
+				[Yy]*) 
+					if [ -n "$filePath" ]; then
+						open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					else
+						open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					fi
+					;;
+				*) echo ;;
+			esac
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+						echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
+						;;
+					*) break ;;
+				esac
+			done
+
 		fi
-		echo
-		echo -e -n "Do you want to open file in browser? (y/n): "
-		read openBrowser
-		if [[ "$openBrowser" == "y" ]]; then
-			if [ -n "$filePath" ]; then
-				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-			else
-				open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-			fi
-		else
-			echo
-		fi
+
+	# Select a pod by typing pod name
 	else
 		echo -e -n "${Cyan}Enter file path to save logs ${Color_Off}($(pwd)): "
 		read filePath
+
+		# Save logs file in custom file path
 		if [ -n "$filePath" ]; then
 			if [[ -d "$(pwd)/$filePath" ]]; then
 				echo "$(pwd)/$filePath directory already exists"
@@ -472,31 +651,89 @@ pod_logs_file_path() {
 			kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
 			echo
 			echo "Logs of pod $podName saved in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
+
+			# Open file in browser
+			echo 
+			echo -e -n "Do you want to open file in browser? (y/n): "
+			read -n 1 openBrowser
+			case $openBrowser in
+				[Yy]*) 
+					if [ -n "$filePath" ]; then
+						open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					else
+						open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
+						echo
+					fi
+					;;
+				*) echo ;;
+			esac
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
+						echo
+						echo "Logs of pod $podName refreshed in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
+						;;
+					*) break ;;
+				esac
+			done
+
+		# Save logs file in default path
 		else
 			kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
 			echo
 			echo "Logs of pod $podName saved in file '$(pwd)/${podName}_$timestamp.log'"
+
+			# Open file in browser
+			echo 
+			echo -e -n "Do you want to open file in browser? (y/n): "
+			read -n 1 openBrowser
+			case $openBrowser in
+				[Yy]*) 
+					if [ -n "$filePath" ]; then
+						open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${podName}_$timestamp.log"
+						echo
+					else
+						open -a "$DEFAULT_BROWSER" "$(pwd)/${podName}_$timestamp.log"
+						echo
+					fi
+					;;
+				*) echo ;;
+			esac
+
+			# Refresh
+			while true; do
+				echo
+				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+				read -n 1 refreshLogs
+				case $refreshLogs in
+					[Rr]*) 
+						echo
+						kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
+						echo
+						echo "Logs of pod $podName refreshed in file '$(pwd)/${podName}_$timestamp.log'"
+						;;
+					*) break ;;
+				esac
+			done
+
 		fi
 		echo
-		
-		echo -e -n "Do you want to open file in browser? (y/n): "
-		read openBrowser
-		if [[ "$openBrowser" == "y" ]]; then
-			if [ -n "$filePath" ]; then
-				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${podName}_$timestamp.log"
-			else
-				open -a "$DEFAULT_BROWSER" "$(pwd)/${podName}_$timestamp.log"
-			fi
-		else
-			echo
-		fi
+
+		# Save pod in recent pods list
 		if [[ ! " ${recent_pods[@]} " =~ " $podName " ]]; then
 			recent_pods=("$podName" "${recent_pods[@]}")
 			recent_pods=("${recent_pods[@]:0:5}")
 		fi
-	fi
-
 	
+	fi
 
 }
 
