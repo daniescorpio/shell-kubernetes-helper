@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # Developer: Daniel Garcia Alonso
-# Contact: Garcia Alonso Daniel <d.garciaalonso@servexternos.pagonxt.com>
-# Version 0.6.0
-# Version date: 2023-11-15
+# Contact: Garcia Alonso Daniel <daniescorpio@hotmail.es>
+# Version 0.7.0
+# Version date: 2023-11-16
 
+
+########## USER CONFIGURATION ##########
 
 # Configure temporal path to save logs
 readonly TMP_LOG_FILE="/Users/x369250/Library/Application Support/JetBrains/IntelliJIdea2023.1/scratches/log.log"
@@ -20,6 +22,10 @@ readonly PRO_CONTEXT="gtsp1weuaksgtsakscrit001"
 # Configure default namespace
 declare NAMESPACE="gts-payments"
 
+########################################
+
+
+
 # Configure colors
 declare BYellow='\033[1;93m'	# Yellow
 declare Yellow='\033[0;33m'		# Yellow
@@ -30,6 +36,7 @@ declare Cyan='\033[0;36m'		# Cyan
 declare IBlue='\033[0;94m'		# Blue
 declare Color_Off='\033[0m'		# Text Reset
 
+# Global variables
 declare context
 declare recent_pods=()
 declare selected_pod_name
