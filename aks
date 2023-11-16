@@ -32,6 +32,7 @@ declare Color_Off='\033[0m'		# Text Reset
 
 declare context
 declare recent_pods=()
+declare selected_pod_name
 
 show_main_menu() {
 
@@ -186,12 +187,26 @@ show_pods() {
 	echo
 	echo
 
+	# Filter by name
 	echo -e -n "${Cyan}Filter by pod name (Or press enter to go main menu): ${Color_Off}"
 	read filter
 	if [ -n "$filter" ]; then
 		echo
 		echo
 		kubectl get pods --namespace $NAMESPACE | grep -i "$filter"
+
+		# Select pod name if filter returns one result
+		output_array=()
+		while IFS= read -r line; do
+			output_array+=("$line")
+		done < <(kubectl get pods --namespace $NAMESPACE | grep -i "$filter")
+		lines=${#output_array[@]}
+		if [[ $lines -eq 1 ]]; then
+			selected_pod_name="$(echo "${output_array[0]}" | awk '{print $1}')"
+			echo 
+			echo -e "${BYellow}$selected_pod_name${Color_Off} saved as default"
+		fi
+
 	fi
 
 }
@@ -299,15 +314,26 @@ pod_logs() {
 	fi
 
 	if [[ ${#recent_pods[@]} -gt 0 ]]; then
-		echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name, index or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+		fi
 		read podName
+
 	else
-		echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		fi
 		read podName
 	fi
 
 	echo
 
+	# Selection pod from recent pods
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
 		echo
 		echo -e -n "${Cyan}Enter text to filter by or left empty to show full log: ${Color_Off}"
@@ -349,7 +375,12 @@ pod_logs() {
 			done
 
 		fi
+	
+	# Selection pod by name
 	else
+		if [[ ! -n "$podName" ]]; then
+			podName=$selected_pod_name
+		fi
 		echo -e -n "${Cyan}Enter text to filter by or left empty to show full log: ${Color_Off}"
 		read filterBy
 		if [ -n "$filterBy" ]; then
@@ -422,10 +453,20 @@ pod_logs_tmp_file() {
 	fi
 
 	if [[ ${#recent_pods[@]} -gt 0 ]]; then
-		echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name, index or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+		fi
 		read podName
+
 	else
-		echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		fi
 		read podName
 	fi
 
@@ -467,6 +508,9 @@ pod_logs_tmp_file() {
 
 	# Select a pod by typing pod name
 	else
+		if [[ ! -n "$podName" ]]; then
+			podName=$selected_pod_name
+		fi
 		kubectl logs $podName --namespace $NAMESPACE > "$TMP_LOG_FILE"
 		echo
 		echo "Logs of pod $podName saved in file '$TMP_LOG_FILE'"
@@ -535,10 +579,20 @@ pod_logs_file_path() {
 	fi
 
 	if [[ ${#recent_pods[@]} -gt 0 ]]; then
-		echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name, index or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+		fi
 		read podName
+
 	else
-		echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		fi
 		read podName
 	fi
 
@@ -637,6 +691,9 @@ pod_logs_file_path() {
 
 	# Select a pod by typing pod name
 	else
+		if [[ ! -n "$podName" ]]; then
+			podName=$selected_pod_name
+		fi
 		echo -e -n "${Cyan}Enter file path to save logs ${Color_Off}($(pwd)): "
 		read filePath
 
@@ -782,7 +839,7 @@ while true; do
 	context=$(kubectl config current-context)
 
 	show_main_menu
-	
+
 	echo -e -n "${Cyan}Select an option pls: ${Color_Off}"
 	read option
 
