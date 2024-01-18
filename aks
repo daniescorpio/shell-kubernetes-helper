@@ -2,8 +2,8 @@
 
 # Developer: Daniel Garcia Alonso
 # Contact: Garcia Alonso Daniel <daniescorpio@hotmail.es>
-# Version 0.7.0
-# Version date: 2023-11-16
+# Version 0.8.0
+# Version date: 2024-01-18
 
 
 ########## USER CONFIGURATION ##########
@@ -60,11 +60,11 @@ show_main_menu() {
 	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
 		echo -e "${Blue}##  ${BYellow}3.${Color_Off} Show ${BGreen}PRE${Color_Off} Pods                                   ${Blue}##${Color_Off}"
 		echo -e "${Blue}##  ${BYellow}4.${Color_Off} Show ${BGreen}PRE${Color_Off} services hosts ${Cyan}(application name)      ${Blue}##${Color_Off}"
-		echo -e "${Blue}##  ${BYellow}5.${Color_Off} Show ${BGreen}DEV${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
+		echo -e "${Blue}##  ${BYellow}5.${Color_Off} Show ${BGreen}PRE${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
 	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
 		echo -e "${Blue}##  ${BYellow}3.${Color_Off} Show ${BGreen}PRO${Color_Off} Pods                                   ${Blue}##${Color_Off}"
 		echo -e "${Blue}##  ${BYellow}4.${Color_Off} Show ${BGreen}PRO${Color_Off} services hosts ${Cyan}(application name)      ${Blue}##${Color_Off}"
-		echo -e "${Blue}##  ${BYellow}5.${Color_Off} Show ${BGreen}DEV${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
+		echo -e "${Blue}##  ${BYellow}5.${Color_Off} Show ${BGreen}PRO${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
 	fi
 	echo -e "${Blue}##                                                     ##${Color_Off}"
 	echo -e "${Blue}##  ${BYellow}6.${Color_Off} Show pod logs ${Cyan}(pod name)                        ${Blue}##${Color_Off}"
@@ -72,6 +72,7 @@ show_main_menu() {
 	echo -e "${Blue}##  ${BYellow}8.${Color_Off} Save pod logs in file ${Cyan}(pod name) (file name)    ${Blue}##${Color_Off}"
 	echo -e "${Blue}##                                                     ##${Color_Off}"
 	echo -e "${Blue}##  ${BYellow}9.${Color_Off} Rollout application ${Cyan}(application name)          ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}10.${Color_Off} Pod shell console ${Cyan}(pod name)          ${Blue}         ##${Color_Off}"
 	echo -e "${Blue}##                                                     ##${Color_Off}"
 	echo -e "${Blue}##                                                     ##${Color_Off}"
 	echo -e "${Blue}##  ${BYellow}0.${Color_Off} Exit AKS helper                                 ${Blue}##${Color_Off}"
@@ -819,6 +820,74 @@ rollout_app() {
 
 }
 
+pod_shell() {
+	clear
+	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##                                                     ##${Color_Off}"
+	echo -e "${Blue}##                    ${BYellow}POD SHELL CONSOLE                ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                     ##${Color_Off}"
+	echo -e "${Blue}#########################################################${Color_Off}"
+	echo
+	echo
+	echo
+
+	# Recent pods list
+	if [[ ${#recent_pods[@]} -gt 0 ]]; then
+		echo -e "${Blue}  ---------------- ${IBlue}RECENT PODS VIEWED ${Blue}-----------------  ${Color_Off}"
+		echo
+		for (( i = 0; i < ${#recent_pods[@]}; i++ )); do
+			echo -e "  ${BYellow}$((i+1)).${Color_Off} ${recent_pods[i]}"
+		done
+		echo 
+		echo -e "${Blue}  -----------------------------------------------------  ${Color_Off}"
+		echo
+	fi
+
+	if [[ ${#recent_pods[@]} -gt 0 ]]; then
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name, index or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name or index in recent pods viewed: ${Color_Off}"
+		fi
+		read podName
+
+	else
+		if [[ -n "$selected_pod_name" ]]; then
+			echo -e -n "${Cyan}Enter pod name or press enter to retrieve logs of pod ${BYellow}$selected_pod_name${Cyan}: ${Color_Off}"
+		else
+			echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+		fi
+		read podName
+	fi
+
+	# Selection pod from recent pods
+	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
+		echo
+		echo
+		# kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE
+		kubectl exec --stdin --tty "${recent_pods[$((podName-1))]}" -n $NAMESPACE -- /bin/bash
+	
+	# Selection pod by name
+	else
+		if [[ ! -n "$podName" ]]; then
+			podName=$selected_pod_name
+		fi
+		echo
+			# kubectl logs $podName --namespace $NAMESPACE
+			kubectl exec --stdin --tty $podName -n $NAMESPACE -- /bin/bash
+
+		if [[ ! " ${recent_pods[@]} " =~ " $podName " ]]; then
+			recent_pods=("$podName" "${recent_pods[@]}")
+			recent_pods=("${recent_pods[@]:0:5}")
+		fi
+	fi
+
+
+	# echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
+	# read podName
+	# kubectl exec --stdin --tty $podName --n $NAMESPACE -- /bin/bash
+}
+
 close_aks_helper() {
 
 	clear
@@ -863,6 +932,7 @@ while true; do
 		8) pod_logs_file_path ;;
 		
 		9) rollout_app ;;
+		10) pod_shell ;; 
 		
 		0) close_aks_helper ;;
 		*) echo "Unknown option selected, please enter a valid option"
