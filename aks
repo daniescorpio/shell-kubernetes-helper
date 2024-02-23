@@ -434,14 +434,14 @@ pod_logs() {
 		read filterBy
 		if [ -n "$filterBy" ]; then
 			echo
+
+			printf "\033]0; $podName \007"
+			
 			kubectl logs $podName --namespace $NAMESPACE | grep -i "$filterBy"
 
 			# Refresh
 			while true; do
 				echo
-
-				printf "\033]0; $podName \007"
-
 				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
 				read -n 1 refreshLogs
 				case $refreshLogs in
@@ -458,14 +458,14 @@ pod_logs() {
 
 		else
 			echo
+
+			printf "\033]0; $podName \007"
+
 			kubectl logs $podName --namespace $NAMESPACE
 
 			# Refresh
 			while true; do
 				echo
-
-				printf "\033]0; $podName \007"
-
 				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
 				read -n 1 refreshLogs
 				case $refreshLogs in
@@ -540,6 +540,9 @@ pod_logs_tmp_file() {
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
 		kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$TMP_LOG_FILE"
 		echo
+		
+		printf "\033]0; ${recent_pods[$((podName-1))]} \007"
+
 		echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$TMP_LOG_FILE'"
 
 		# Open file in browser
@@ -557,9 +560,6 @@ pod_logs_tmp_file() {
 		# Refresh
 		while true; do
 			echo
-
-			printf "\033]0; ${recent_pods[$((podName-1))]} \007"
-
 			echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
 			read -n 1 refreshLogs
 			case $refreshLogs in
@@ -582,6 +582,9 @@ pod_logs_tmp_file() {
 		fi
 		kubectl logs $podName --namespace $NAMESPACE > "$TMP_LOG_FILE"
 		echo
+
+		printf "\033]0; $podName \007"
+
 		echo "Logs of pod $podName saved in file '$TMP_LOG_FILE'"
 
 		# Open file in browser
@@ -604,9 +607,6 @@ pod_logs_tmp_file() {
 			case $refreshLogs in
 				[Rr]*) 
 					echo
-
-					printf "\033]0; $podName \007"
-
 					kubectl logs $podName --namespace $NAMESPACE > "$TMP_LOG_FILE"
 					echo
 					echo "Logs of pod $podName refreshed in file '$TMP_LOG_FILE'"
@@ -690,6 +690,9 @@ pod_logs_file_path() {
 			fi
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
 			echo
+
+			printf "\033]0; ${recent_pods[$((podName-1))]} \007"
+			
 			echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
 
 			# Open file in browser
@@ -717,9 +720,6 @@ pod_logs_file_path() {
 				case $refreshLogs in
 					[Rr]*) 
 						echo
-
-						printf "\033]0; ${recent_pods[$((podName-1))]} \007"
-
 						kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
 						echo
 						echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
@@ -734,6 +734,9 @@ pod_logs_file_path() {
 		else
 			kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 			echo
+			
+			printf "\033]0; ${recent_pods[$((podName-1))]} \007"
+
 			echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
 
 			# Open file in browser
@@ -756,9 +759,6 @@ pod_logs_file_path() {
 			# Refresh
 			while true; do
 				echo
-
-				printf "\033]0; ${recent_pods[$((podName-1))]} \007"
-
 				echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
 				read -n 1 refreshLogs
 				case $refreshLogs in
@@ -794,6 +794,9 @@ pod_logs_file_path() {
 			fi
 			kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
 			echo
+
+			printf "\033]0; $podName \007"
+
 			echo "Logs of pod $podName saved in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
 
 			# Open file in browser
@@ -821,9 +824,6 @@ pod_logs_file_path() {
 				case $refreshLogs in
 					[Rr]*) 
 						echo
-
-						printf "\033]0; $podName \007"
-
 						kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
 						echo
 						echo "Logs of pod $podName refreshed in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
@@ -838,6 +838,9 @@ pod_logs_file_path() {
 		else
 			kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
 			echo
+
+			printf "\033]0; $podName \007"
+
 			echo "Logs of pod $podName saved in file '$(pwd)/${podName}_$timestamp.log'"
 
 			# Open file in browser
@@ -865,9 +868,6 @@ pod_logs_file_path() {
 				case $refreshLogs in
 					[Rr]*) 
 						echo
-
-						printf "\033]0; $podName \007"
-
 						kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
 						echo
 						echo "Logs of pod $podName refreshed in file '$(pwd)/${podName}_$timestamp.log'"
@@ -905,9 +905,24 @@ rollout_app() {
 	echo
 	echo
 	echo
+	
+	timestamp=$(date +"%Y%m%d-%H%M%S")
+
+	if [ ! -d "$(pwd)/restartedApplicationsLogs" ]; then
+		mkdir -p "$(pwd)/restartedApplicationsLogs"
+	fi
 
 	echo -e -n "${Cyan}Enter application name: ${Color_Off}"
 	read applicationName
+
+	for pod in $(kubectl get pods -l app=$applicationName -n $NAMESPACE -o=jsonpath='{.items[*].metadata.name}'); do
+		
+		kubectl logs $pod -n $NAMESPACE > "$(pwd)/restartedApplicationsLogs/${pod}_$timestamp.log"
+		echo
+		echo "Logs of pod $pod refreshed in file '$(pwd)/restartedApplicationsLogs/${pod}_$timestamp.log'"
+
+	done
+
 	kubectl rollout restart Deployment/$applicationName -n $NAMESPACE
 
 }
