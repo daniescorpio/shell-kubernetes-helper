@@ -932,6 +932,14 @@ rollout_app() {
 
 	kubectl rollout restart Deployment/$applicationName -n $NAMESPACE
 
+	echo 
+	echo 
+	print_progress_bar
+
+	echo 
+	echo
+	echo "$applicationName restart completed"
+
 }
 
 pod_shell() {
@@ -1019,6 +1027,36 @@ close_aks_helper() {
 
 }
 
+print_progress_bar() {
+	local duration=180
+	local width=40
+
+	echo
+	echo "Press 'q' to go back menu"
+	echo
+
+	for (( i = 0; i <= duration; i++ )); do
+		percentage=$((i * 100 / duration))
+		completed=$((percentage * width / 100))
+		remaining=$((width - completed))
+
+		printf "Progress: %d%% [" "$percentage"
+		printf "%${completed}s" | tr " " "="
+		printf "%${remaining}s" | tr " " " "
+		printf "]"
+
+		sleep 1
+		printf "\r"
+
+		echo
+		read -t 1 -n 1 input
+		if [[ $input = "q" ]]; then
+			break
+		fi
+	done
+}
+
+
 if [[ -d "$(pwd)/aks-logs" ]]; then
 	echo "$(pwd)/aks-logs directory already exists"
 	cd "$(pwd)/aks-logs" || exit 1
@@ -1053,6 +1091,8 @@ while true; do
 		
 		9) rollout_app ;;
 		10) pod_shell ;; 
+
+		99) print_progress_bar ;;
 		
 		0) close_aks_helper ;;
 		*) echo "Unknown option selected, please enter a valid option"
