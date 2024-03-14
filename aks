@@ -1030,10 +1030,12 @@ close_aks_helper() {
 print_progress_bar() {
 	local duration=180
 	local width=40
+	local input
 
-	echo
-	echo "Press 'q' to go back menu"
-	echo
+	printf "\nPress 'q' to go back to the menu\n\n"
+
+	# Deshabilitar el modo de eco para que la entrada del usuario no se muestre en pantalla
+	stty -echo
 
 	for (( i = 0; i <= duration; i++ )); do
 		percentage=$((i * 100 / duration))
@@ -1048,12 +1050,17 @@ print_progress_bar() {
 		sleep 1
 		printf "\r"
 
-		echo
-		read -t 1 -n 1 input
+		# Leer la entrada del usuario sin mostrarla en pantalla
+		read -s -n 1 -t 1 input
 		if [[ $input = "q" ]]; then
 			break
 		fi
 	done
+
+	# Restaurar el modo de eco después de salir del bucle
+	stty echo
+
+	printf "\n"
 }
 
 
