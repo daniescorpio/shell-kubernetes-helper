@@ -2,8 +2,8 @@
 
 # Developer: Daniel Garcia Alonso
 # Contact: Garcia Alonso Daniel <daniescorpio@hotmail.es>
-# Version 0.9.0
-# Version date: 2024-02-13
+# Version 0.10.0
+# Version date: 2024-11-05
 
 
 ########## USER CONFIGURATION ##########
@@ -15,12 +15,18 @@ readonly TMP_LOG_FILE="/Users/x369250/Library/Application Support/JetBrains/Inte
 readonly DEFAULT_BROWSER="Google Chrome"
 
 # Configure environments servers
-readonly DEV_CONTEXT="gtsd1weuaksgtsakscrit001"
-readonly PRE_CONTEXT="gtsi1weuaksgtsakscrit001"
-readonly PRO_CONTEXT="gtsp1weuaksgtsakscrit001"
+## GTS
+readonly DEV_GTS_CONTEXT="gtsd1weuaksgtsakscrit001"
+readonly PRE_GTS_CONTEXT="gtsi1weuaksgtsakscrit001"
+readonly PRO_GTS_CONTEXT="gtsp1weuaksgtsakscrit001"
+
+## PymentsHub
+readonly DEV_PH_CONTEXT="dev1-eks"
+readonly PRE_PH_CONTEXT="pre1-eks"
+readonly PRO_PH_CONTEXT="prod1-eks"
 
 # Configure default namespace
-declare NAMESPACE="gts-payments"
+declare NAMESPACE="Select a namespace please"
 
 ########################################
 
@@ -46,19 +52,26 @@ declare selected_pod_name
 show_connection_context() {
 
 	echo
-	echo -e "${Blue}  ----------------- ${IBlue}CONECTION CONTEXT ${Blue}-----------------  ${Color_Off}"
+	echo -e "${Blue}  -------------------------- ${IBlue}CONECTION CONTEXT ${Blue}---------------------------  ${Color_Off}"
 	echo 
-	if [[ "$context" = "$DEV_CONTEXT" ]]; then
-		echo -e "  ${BYellow}CONECTED TO: ${BGreen}DEV ${Green}($context)${Color_Off}"
-	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
-		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRE ${Green}($context)${Color_Off}"
-	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
-		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRO ${Green}($context)${Color_Off}"
+	if [[ "$context" = "$DEV_GTS_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}DEV GTS${Green}($context)${Color_Off}"
+	elif [[ "$context" = "$PRE_GTS_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRE GTS${Green}($context)${Color_Off}"
+	elif [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRO GTS${Green}($context)${Color_Off}"
+
+	elif [[ "$context" = "$DEV_PH_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}DEV PaymentsHub${Green}($context)${Color_Off}"
+	elif [[ "$context" = "$PRE_PH_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRE PaymentsHub${Green}($context)${Color_Off}"
+	elif [[ "$context" = "$PRO_PH_CONTEXT" ]]; then
+		echo -e "  ${BYellow}CONECTED TO: ${BGreen}PRE PaymentsHub${Green}($context)${Color_Off}"
 	fi
 	echo
 	echo -e "  ${BYellow}ACTIVE NAMESPACE: ${Green}$NAMESPACE${Color_Off}"
 	echo
-	echo -e "${Blue}  -----------------------------------------------------  ${Color_Off}"
+	echo -e "${Blue}  ------------------------------------------------------------------------  ${Color_Off}"
 	echo
 
 }
@@ -69,40 +82,53 @@ show_main_menu() {
 
 	show_connection_context
 
-	echo -e "${Blue}##########################################################${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##                    ${BYellow}Local AKS helper                  ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##   -------------------------------------------------  ##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}1.${Color_Off} Change environment                              ${Blue}##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}2.${Color_Off} Change active namespace                         ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	if [[ "$context" = "$DEV_CONTEXT" ]]; then
-		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}DEV${Color_Off} Pods                                   ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}DEV${Color_Off} services hosts ${Cyan}(application name)      ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}DEV${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
-		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRE${Color_Off} Pods                                   ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRE${Color_Off} services hosts ${Cyan}(application name)      ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRE${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
-		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRO${Color_Off} Pods                                   ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRO${Color_Off} services hosts ${Cyan}(application name)      ${Blue}##${Color_Off}"
-		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRO${Color_Off} services images ${Cyan}(application name)     ${Blue}##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                             ${BYellow}Local AKS helper                         ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##   -----------------------------------------------------------------  ##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}1.${Color_Off} Change environment                                              ${Blue}##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}2.${Color_Off} Change active namespace                                         ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	if [[ "$context" = "$DEV_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}DEV GTS${Color_Off} Pods                                               ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}DEV GTS${Color_Off} services hosts ${Cyan}(application name)                  ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}DEV GTS${Color_Off} services images ${Cyan}(application name)                 ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRE GTS${Color_Off} Pods                                               ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRE GTS${Color_Off} services hosts ${Cyan}(application name)                  ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRE GTS${Color_Off} services images ${Cyan}(application name)                 ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRO GTS${Color_Off} Pods                                               ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRO GTS${Color_Off} services hosts ${Cyan}(application name)                  ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRO GTS${Color_Off} services images ${Cyan}(application name)                 ${Blue}##${Color_Off}"
+	
+	elif [[ "$context" = "$DEV_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}DEV PaymentsHub${Color_Off} Pods                                       ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}DEV PaymentsHub${Color_Off} services hosts ${Cyan}(application name)          ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}DEV PaymentsHub${Color_Off} services images ${Cyan}(application name)         ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRE PaymentsHub${Color_Off} Pods                                       ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRE PaymentsHub${Color_Off} services hosts ${Cyan}(application name)          ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRE PaymentsHub${Color_Off} services images ${Cyan}(application name)         ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##   ${BYellow}3.${Color_Off} Show ${BGreen}PRO PaymentsHub${Color_Off} Pods                                       ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}4.${Color_Off} Show ${BGreen}PRO PaymentsHub${Color_Off} services hosts ${Cyan}(application name)          ${Blue}##${Color_Off}"
+		echo -e "${Blue}##   ${BYellow}5.${Color_Off} Show ${BGreen}PRO PaymentsHub${Color_Off} services images ${Cyan}(application name)        ${Blue}##${Color_Off}"
 	fi
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}6.${Color_Off} Show pod logs ${Cyan}(pod name)                        ${Blue}##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}7.${Color_Off} Save pod logs in temp file ${Cyan}(pod name)           ${Blue}##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}8.${Color_Off} Save pod logs in file ${Cyan}(pod name) (file name)    ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}9.${Color_Off} Rollout application ${Cyan}(application name)          ${Blue}##${Color_Off}"
-	echo -e "${Blue}##  ${BYellow}10.${Color_Off} Pod shell console ${Cyan}(pod name)          ${Blue}          ##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##   ${BYellow}0.${Color_Off} Exit AKS helper                                 ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                      ##${Color_Off}"
-	echo -e "${Blue}##########################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}6.${Color_Off} Show pod logs ${Cyan}(pod name)                                        ${Blue}##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}7.${Color_Off} Save pod logs in temp file ${Cyan}(pod name)                           ${Blue}##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}8.${Color_Off} Save pod logs in file ${Cyan}(pod name) (file name)                    ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}9.${Color_Off} Rollout application ${Cyan}(application name)                          ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}10.${Color_Off} Pod shell console ${Cyan}(pod name)          ${Blue}                          ##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##   ${BYellow}0.${Color_Off} Exit AKS helper                                                 ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo 
 
 }
@@ -113,17 +139,20 @@ change_environment() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                   ${BYellow}SELECT ENVIRONMENT                ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##  -------------------------------------------------  ##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##  ${BYellow}1.${Color_Off} DEV                                             ${Blue}##${Color_Off}"
-	echo -e "${Blue}##  ${BYellow}2.${Color_Off} PRE                                             ${Blue}##${Color_Off}"
-	echo -e "${Blue}##  ${BYellow}3.${Color_Off} PRO                                             ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                            ${BYellow}SELECT ENVIRONMENT                        ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##  ------------------------------------------------------------------  ##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}1.${Color_Off} DEV GTS                                                          ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}2.${Color_Off} PRE GTS                                                          ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}3.${Color_Off} PRO GTS                                                          ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}4.${Color_Off} DEV PaymentsHub                                                  ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}5.${Color_Off} PRE PaymentsHub                                                  ${Blue}##${Color_Off}"
+	echo -e "${Blue}##  ${BYellow}6.${Color_Off} PRO PaymentsHub                                                  ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	
 	echo
 	echo
@@ -134,23 +163,83 @@ change_environment() {
 	if [ -n "$environment" ]; then
 		case $environment in 
 			1) 
-				kubectl config use-context $DEV_CONTEXT 
+				kubectl config use-context $DEV_GTS_CONTEXT 
 				echo
-				echo -e "${Green}DEV: $(kubectl config current-context)${Color_Off} now is the active environment"
+				echo -e "${Green}DEV GTS: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="gts-payments"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+
 				recent_pods=()
 				selected_pod_name=''
 				;;
 			2) 
-				kubectl config use-context $PRE_CONTEXT 
+				kubectl config use-context $PRE_GTS_CONTEXT 
 				echo
-				echo -e "${Green}PRE: $(kubectl config current-context)${Color_Off} now is the active environment"
+				echo -e "${Green}PRE GTS: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="gts-payments"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+
 				recent_pods=()
 				selected_pod_name=''
 				;;
 			3) 
-				kubectl config use-context $PRO_CONTEXT 
+				kubectl config use-context $PRO_GTS_CONTEXT 
 				echo
-				echo -e "${Green}PRO: $(kubectl config current-context)${Color_Off} now is the active environment"
+				echo -e "${Green}PRO GTS: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="gts-payments"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+
+				recent_pods=()
+				selected_pod_name=''
+				;;
+			4) 
+				echo -e "${BYellow}Login required, COMPLETE LOGIN IN POP-UP WINDOW OPENED PLEASE ${Color_Off}"
+				echo
+				awsl
+				kubectl config use-context $DEV_PH_CONTEXT 
+				echo
+				echo -e "${Green}DEV PaymentsHub: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="euw1-eu-dev"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+				
+				recent_pods=()
+				selected_pod_name=''
+				;;
+			5) 
+				echo -e "${BYellow}Login required, COMPLETE LOGIN IN POP-UP WINDOW OPENED PLEASE ${Color_Off}"
+				echo
+				awsl
+				kubectl config use-context $PRE_PH_CONTEXT 
+				echo
+				echo -e "${Green}PRE PaymentsHub: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="euw1-eu-pre"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+
+				recent_pods=()
+				selected_pod_name=''
+				;;
+			6) 
+				echo -e "${BYellow}Login required, COMPLETE LOGIN IN POP-UP WINDOW OPENED PLEASE ${Color_Off}"
+				echo
+				awsl
+				kubectl config use-context $PRO_PH_CONTEXT 
+				echo
+				echo -e "${Green}PRO PaymentsHub: $(kubectl config current-context)${Color_Off} now is the active environment"
+
+				export NAMESPACE="euw1-eu-pro"
+				echo
+				echo -e "${Green}$NAMESPACE${Color_Off} setted as active namespace"
+
 				recent_pods=()
 				selected_pod_name=''
 				;;
@@ -167,11 +256,11 @@ change_namespace() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##               ${BYellow}SELECT ACTIVE NAMESPACE               ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                        ${BYellow}SELECT ACTIVE NAMESPACE                       ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -197,18 +286,25 @@ show_pods() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	if [[ "$context" = "$DEV_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}PODS - ${BGreen}DEV                      ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}PODS - ${BGreen}PRE                      ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}PODS - ${BGreen}PRO                      ${Blue}##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	if [[ "$context" = "$DEV_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}DEV GTS                              ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}PRE GTS                              ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}PRO GTS                              ${Blue}##${Color_Off}"
+
+	elif [[ "$context" = "$DEV_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}DEV PaymentsHub                      ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}PRE PaymentsHub                      ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}PODS - ${BGreen}PRO PaymentsHub                      ${Blue}##${Color_Off}"
 	fi
 
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -238,6 +334,63 @@ show_pods() {
 			echo -e "${BYellow}$selected_pod_name${Color_Off} saved as default"
 		fi
 
+		# Save directly logs on file and open in browser
+		echo 
+		echo -e -n "${BYellow}Do you want to open file(s) in browser? (y/n): ${Color_Off}"
+		read -n 1 openBrowser
+		case $openBrowser in
+			[Yy]*) 
+				echo
+				echo
+				
+				for (( i = 0; i < ${#output_array[@]}; i++ )); do
+					echo -e "$(echo "${output_array[i]}" | awk '{print $1}')"
+
+					kubectl logs $(echo "${output_array[i]}" | awk '{print $1}') --namespace $NAMESPACE > "$(pwd)/$(echo "${output_array[i]}" | awk '{print $1}')_$timestamp.log"
+					echo
+
+					printf "\033]0; $output_array[i] \007"
+
+					echo "Logs of pod $(echo "${output_array[i]}" | awk '{print $1}') saved in file '$(pwd)/$(echo "${output_array[i]}" | awk '{print $1}')_$timestamp.log'"
+
+					open -a "$DEFAULT_BROWSER" "$(pwd)/$(echo "${output_array[i]}" | awk '{print $1}')_$timestamp.log"
+					echo
+				done
+
+				echo
+
+				# Refresh
+				while true; do
+					echo
+					echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
+					read -n 1 refreshLogs
+					case $refreshLogs in
+						[Rr]*) 
+							for (( i = 0; i < ${#output_array[@]}; i++ )); do
+								echo -e "$(echo "${output_array[i]}" | awk '{print $1}')"
+
+								kubectl logs $(echo "${output_array[i]}" | awk '{print $1}') --namespace $NAMESPACE > "$(pwd)/$(echo "${output_array[i]}" | awk '{print $1}')_$timestamp.log"
+								echo
+
+								printf "\033]0; $output_array[i] \007"
+
+								echo "Logs of pod $(echo "${output_array[i]}" | awk '{print $1}') refreshed in file '$(pwd)/$(echo "${output_array[i]}" | awk '{print $1}')_$timestamp.log'"
+
+								echo
+							done
+
+							;;
+
+						*) break 
+							printf "\033]0; Kubernetes Helper \007"
+							;;
+					esac
+				done
+
+				echo
+				;;
+			*) echo ;;
+		esac
 	fi
 
 }
@@ -248,18 +401,25 @@ show_services_host() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	if [[ "$context" = "$DEV_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}HOSTS - ${BGreen}DEV                     ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}HOSTS - ${BGreen}PRE                     ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}HOSTS - ${BGreen}PRO                     ${Blue}##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	if [[ "$context" = "$DEV_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}DEV GTS                             ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}PRE GTS                             ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}PRO GTS                             ${Blue}##${Color_Off}"
+
+	elif [[ "$context" = "$DEV_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}PRO PaymentsHub                     ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}PRO PaymentsHub                     ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_PH_CONTEXT" ]]; then	
+		echo -e "${Blue}##                          ${BYellow}HOSTS - ${BGreen}PRO PaymentsHub                     ${Blue}##${Color_Off}"
 	fi
 
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -285,18 +445,25 @@ show_services_images() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	if [[ "$context" = "$DEV_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}IMAGES - ${BGreen}DEV                    ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRE_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}IMAGES - ${BGreen}PRE                    ${Blue}##${Color_Off}"
-	elif [[ "$context" = "$PRO_CONTEXT" ]]; then
-		echo -e "${Blue}##                     ${BYellow}IMAGES - ${BGreen}PRO                    ${Blue}##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	if [[ "$context" = "$DEV_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}DEV GTS                            ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}PRE GTS                            ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}PRO GTS                            ${Blue}##${Color_Off}"
+
+	elif [[ "$context" = "$DEV_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}PRO PaymentsHub                    ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRE_PH_CONTEXT" ]]; then
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}PRO PaymentsHub                    ${Blue}##${Color_Off}"
+	elif [[ "$context" = "$PRO_PH_CONTEXT" ]]; then	
+		echo -e "${Blue}##                          ${BYellow}IMAGES - ${BGreen}PRO PaymentsHub                    ${Blue}##${Color_Off}"
 	fi
 
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -333,11 +500,11 @@ pod_logs() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                       ${BYellow}POD LOGS                      ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                                ${BYellow}POD LOGS                              ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 
@@ -498,11 +665,11 @@ pod_logs_tmp_file() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##               ${BYellow}SAVE POD LOGS IN TEMP FILE            ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                        ${BYellow}SAVE POD LOGS IN TEMP FILE                    ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 
@@ -636,11 +803,11 @@ pod_logs_file_path() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                 ${BYellow}SAVE POD LOGS IN FILE               ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                          ${BYellow}SAVE POD LOGS IN FILE                       ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	timestamp=$(date +"%Y%m%d-%H%M%S")
@@ -679,104 +846,7 @@ pod_logs_file_path() {
 
 	# Select a pod from recent pods list
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
-		# echo -e -n "${Cyan}Enter file path to save logs ${Color_Off}($(pwd)): "
-		# read filePath
 
-		# # Save logs file in custom path
-		# if [ -n "$filePath" ]; then
-		# 	if [[ -d "$(pwd)/$filePath" ]]; then
-		# 		echo "$(pwd)/$filePath directory already exists"
-		# 	else
-		# 		echo "$(pwd)/$filePath does not exists, generating path"
-		# 		mkdir -p "$(pwd)/$filePath"
-		# 	fi
-		# 	kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 	echo
-
-		# 	printf "\033]0; ${recent_pods[$((podName-1))]} \007"
-			
-		# 	echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
-
-		# 	# Open file in browser
-		# 	echo 
-		# 	echo -e -n "Do you want to open file in browser? (y/n): "
-		# 	read -n 1 openBrowser
-		# 	case $openBrowser in
-		# 		[Yy]*) 
-		# 			if [ -n "$filePath" ]; then
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			else
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			fi
-		# 			;;
-		# 		*) echo ;;
-		# 	esac
-
-		# 	# Refresh
-		# 	while true; do
-		# 		echo
-		# 		echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
-		# 		read -n 1 refreshLogs
-		# 		case $refreshLogs in
-		# 			[Rr]*) 
-		# 				echo
-		# 				kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 				echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log'"
-		# 				;;
-		# 			*) break 
-		# 				printf "\033]0; Kubernetes Helper \007"
-		# 				;;
-		# 		esac
-		# 	done
-
-		# # Save logs file in default path
-		# else
-		# 	kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 	echo
-			
-		# 	printf "\033]0; ${recent_pods[$((podName-1))]} \007"
-
-		# 	echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
-
-		# 	# Open file in browser
-		# 	echo 
-		# 	echo -e -n "Do you want to open file in browser? (y/n): "
-		# 	read -n 1 openBrowser
-		# 	case $openBrowser in
-		# 		[Yy]*) 
-		# 			if [ -n "$filePath" ]; then
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			else
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			fi
-		# 			;;
-		# 		*) echo ;;
-		# 	esac
-
-		# 	# Refresh
-		# 	while true; do
-		# 		echo
-		# 		echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
-		# 		read -n 1 refreshLogs
-		# 		case $refreshLogs in
-		# 			[Rr]*) 
-		# 				echo
-		# 				kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 				echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
-		# 				;;
-		# 			*) break 
-		# 				printf "\033]0; Kubernetes Helper \007"
-		# 				;;
-		# 		esac
-		# 	done
-
-		# fi
 		kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 		echo
 		
@@ -784,26 +854,8 @@ pod_logs_file_path() {
 
 		echo "Logs of pod ${recent_pods[$((podName-1))]} saved in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
 
-		# Open file in browser
-		# echo 
-		# echo -e -n "Do you want to open file in browser? (y/n): "
-		# read -n 1 openBrowser
-		# case $openBrowser in
-		# 	[Yy]*) 
-		# 		if [ -n "$filePath" ]; then
-		# 			open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 			echo
-		# 		else
-		# 			open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 			echo
-		# 		fi
-		# 		;;
-		# 	*) echo ;;
-		# esac
 		open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 		echo
-
-		# lnav "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 
 		# Refresh
 		while true; do
@@ -816,8 +868,6 @@ pod_logs_file_path() {
 					kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE > "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 					echo
 					echo "Logs of pod ${recent_pods[$((podName-1))]} refreshed in file '$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log'"
-
-					# lnav "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
 					;;
 				*) break 
 					printf "\033]0; Kubernetes Helper \007"
@@ -830,86 +880,6 @@ pod_logs_file_path() {
 		if [[ ! -n "$podName" ]]; then
 			podName=$selected_pod_name
 		fi
-		# echo -e -n "${Cyan}Enter file path to save logs ${Color_Off}($(pwd)): "
-		# read filePath
-
-		# # Save logs file in custom file path
-		# if [ -n "$filePath" ]; then
-		# 	if [[ -d "$(pwd)/$filePath" ]]; then
-		# 		echo "$(pwd)/$filePath directory already exists"
-		# 	else
-		# 		echo "$(pwd)/$filePath does not exists, generating path"
-		# 		mkdir -p "$(pwd)/$filePath"
-		# 	fi
-		# 	kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
-		# 	echo
-
-		# 	printf "\033]0; $podName \007"
-
-		# 	echo "Logs of pod $podName saved in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
-
-		# 	# Open file in browser
-		# 	echo 
-		# 	echo -e -n "Do you want to open file in browser? (y/n): "
-		# 	read -n 1 openBrowser
-		# 	case $openBrowser in
-		# 		[Yy]*) 
-		# 			if [ -n "$filePath" ]; then
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			else
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/${recent_pods[$((podName-1))]}_$timestamp.log"
-		# 				echo
-		# 			fi
-		# 			;;
-		# 		*) echo ;;
-		# 	esac
-
-		# 	# Refresh
-		# 	while true; do
-		# 		echo
-		# 		echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
-		# 		read -n 1 refreshLogs
-		# 		case $refreshLogs in
-		# 			[Rr]*) 
-		# 				echo
-		# 				kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/$filePath/${podName}_$timestamp.log"
-		# 				echo
-		# 				echo "Logs of pod $podName refreshed in file '$(pwd)/$filePath/${podName}_$timestamp.log'"
-		# 				;;
-		# 			*) break 
-		# 				printf "\033]0; Kubernetes Helper \007"
-		# 				;;
-		# 		esac
-		# 	done
-
-		# # Save logs file in default path
-		# else
-		# 	kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
-		# 	echo
-
-		# 	printf "\033]0; $podName \007"
-
-		# 	echo "Logs of pod $podName saved in file '$(pwd)/${podName}_$timestamp.log'"
-
-		# 	# Open file in browser
-		# 	echo 
-		# 	echo -e -n "Do you want to open file in browser? (y/n): "
-		# 	read -n 1 openBrowser
-		# 	case $openBrowser in
-		# 		[Yy]*) 
-		# 			if [ -n "$filePath" ]; then
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${podName}_$timestamp.log"
-		# 				echo
-		# 			else
-		# 				open -a "$DEFAULT_BROWSER" "$(pwd)/${podName}_$timestamp.log"
-		# 				echo
-		# 			fi
-		# 			;;
-		# 		*) echo ;;
-		# 	esac
-
-		# fi
 
 		kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
 		echo
@@ -918,45 +888,9 @@ pod_logs_file_path() {
 
 		echo "Logs of pod $podName saved in file '$(pwd)/${podName}_$timestamp.log'"
 
-		# Refresh
-		# while true; do
-		# 	echo
-		# 	echo -e -n "${Cyan}Press r to refresh logs or enter to go back menu... ${Color_Off}"
-		# 	read -n 1 refreshLogs
-		# 	case $refreshLogs in
-		# 		[Rr]*) 
-		# 			echo
-		# 			kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
-		# 			echo
-		# 			echo "Logs of pod $podName refreshed in file '$(pwd)/${podName}_$timestamp.log'"
-		# 			;;
-		# 		*) break 
-		# 			printf "\033]0; Kubernetes Helper \007"
-		# 			;;
-		# 	esac
-		# done
-
-		# # Open file in browser
-		# echo 
-		# echo -e -n "Do you want to open file in browser? (y/n): "
-		# read -n 1 openBrowser
-		# case $openBrowser in
-		# 	[Yy]*) 
-		# 		if [ -n "$filePath" ]; then
-		# 			open -a "$DEFAULT_BROWSER" "$(pwd)/$filePath/${podName}_$timestamp.log"
-		# 			echo
-		# 		else
-		# 			open -a "$DEFAULT_BROWSER" "$(pwd)/${podName}_$timestamp.log"
-		# 			echo
-		# 		fi
-		# 		;;
-		# 	*) echo ;;
-		# esac
-
 		open -a "$DEFAULT_BROWSER" "$(pwd)/${podName}_$timestamp.log"
 		echo
 
-		# lnav "$(pwd)/${podName}_$timestamp.log"
 
 		# Refresh
 		while true; do
@@ -969,9 +903,6 @@ pod_logs_file_path() {
 					kubectl logs $podName --namespace $NAMESPACE > "$(pwd)/${podName}_$timestamp.log"
 					echo
 					echo "Logs of pod $podName refreshed in file '$(pwd)/${podName}_$timestamp.log'"
-
-					# lnav "$(pwd)/${podName}_$timestamp.log"
-
 					;;
 
 				*) break 
@@ -998,11 +929,11 @@ rollout_app() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                  ${BYellow}ROLLOUT APPLICATION                ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                           ${BYellow}ROLLOUT APPLICATION                        ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -1013,11 +944,12 @@ rollout_app() {
 		mkdir -p "$(pwd)/restartedApplicationsLogs"
 	fi
 
-	if [[ "$context" = "$PRO_CONTEXT" ]]; then
+	if [[ "$context" = "$PRO_GTS_CONTEXT" ]]; then
 		echo  -e "${BIRed}¡¡¡ ROLLOUT CANNOT BE APPLIED IN PRO ENVIRONMENT !!!${Color_Off}"
 		echo  -e "${BIRed}¡¡¡ ROLLOUT CANNOT BE APPLIED IN PRO ENVIRONMENT !!!${Color_Off}"
 		echo  -e "${BIRed}¡¡¡ ROLLOUT CANNOT BE APPLIED IN PRO ENVIRONMENT !!!${Color_Off}"
 		echo
+		
 		return 1
 	fi
 
@@ -1049,11 +981,11 @@ pod_shell() {
 
 	show_connection_context
 
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                    ${BYellow}POD SHELL CONSOLE                ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                             ${BYellow}POD SHELL CONSOLE                         ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	echo
 	echo
 	echo
@@ -1091,7 +1023,6 @@ pod_shell() {
 	if [[ "$podName" =~ ^[0-9]+$ ]]; then 
 		echo
 		echo
-		# kubectl logs "${recent_pods[$((podName-1))]}" --namespace $NAMESPACE
 		kubectl exec --stdin --tty "${recent_pods[$((podName-1))]}" -n $NAMESPACE -- /bin/bash
 	
 	# Selection pod by name
@@ -1109,20 +1040,16 @@ pod_shell() {
 		fi
 	fi
 
-
-	# echo -e -n "${Cyan}Enter pod name: ${Color_Off}"
-	# read podName
-	# kubectl exec --stdin --tty $podName --n $NAMESPACE -- /bin/bash
 }
 
 close_aks_helper() {
 
 	clear
-	echo -e "${Blue}#########################################################${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}##                   ${BYellow}CLOSING AKS HELPER                ${Blue}##${Color_Off}"
-	echo -e "${Blue}##                                                     ##${Color_Off}"
-	echo -e "${Blue}#########################################################${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##                            ${BYellow}CLOSING AKS HELPER                        ${Blue}##${Color_Off}"
+	echo -e "${Blue}##                                                                      ##${Color_Off}"
+	echo -e "${Blue}##########################################################################${Color_Off}"
 	clear
 	exit 0
 
